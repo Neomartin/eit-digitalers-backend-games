@@ -13,7 +13,7 @@ async function createProduct(req, res) {
     // Guardar el producto en la base de datos
     await newProduct.save(); // save() devuelve una promesa
 
-    res.status(201).send("Producto creado correctamente");
+    res.status(201).send({ message: "Producto creado correctamente", product: newProduct});
   } catch (error) {
     console.log(error);
     res.status().send("No se pudo crear el producto");
