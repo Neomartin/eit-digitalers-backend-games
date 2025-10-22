@@ -52,7 +52,7 @@ const userSchema = new Schema({
   },
   isActive: {
     type: Boolean,
-    default: false,
+    default: true,
   },
   // address: {
   //   street: { type: String, trim: true, maxlength: 100 },
