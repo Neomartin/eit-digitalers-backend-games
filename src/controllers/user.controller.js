@@ -20,7 +20,26 @@ async function getUsers(req, res) {
 }
 
 async function getUserById(req, res) {
-  res.send("Get user by ID");
+  try {
+    const { id } = req.params;
+
+    // Si el userio no es admin y no es el mismo usuario que se quiere ver, denegar el acceso
+    if (req.user.role !== "admin" && req.user._id !== id) {
+      return res
+        .status(403)
+        .send({ message: "No tienes permiso para ver este usuario" });
+    }
+
+    const user = await User.findById(id).select("-password -__v");
+
+    return res.status(200).send({
+      message: "Usuario obtenido correctamente",
+      user,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({ message: "Error retrieving user" });
+  }
 }
 
 async function createUser(req, res) {
@@ -93,6 +112,10 @@ async function loginUser(req, res) {
     // Obtener los datos del body email, password
     const { email, password } = req.body;
 
+    if (!email || !password) {
+      return res.status(400).send({ message: "Faltan campos obligarios" });
+    }
+
     // Buscar el usuario en la base de datos por su email
     const user = await User.findOne({ email }).select("-createdAt -__v");
     // ❌ Si no existe, devolver un error 404
@@ -101,7 +124,6 @@ async function loginUser(req, res) {
     }
 
     // ✅ Si existe, obtengo el documento del usuario
-
     // Comparar la contraseña del body con la contraseña cifrada del usuario en la base de datos
     const isValid = bcrypt.compareSync(password, user.password);
 
@@ -120,7 +142,7 @@ async function loginUser(req, res) {
     const SECRET = process.env.JWT_SECRET;
     // GENERAR UN TOKEN JWT
     // Para evitar error de plain objtect, convertimos el documento de mongoose a un objeto plano
-    const token = jwt.sign(user.toJSON(), SECRET);
+    const token = jwt.sign(user.toJSON(), SECRET, { expiresIn: "1h" });
 
     return res.status(200).send({
       message: "Usuario logueado correctamente",

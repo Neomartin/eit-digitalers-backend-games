@@ -6,20 +6,22 @@ import {
   deleteProduct,
   updateProduct,
 } from "../controllers/product.controller.js";
+import { isAuth } from "../middlewares/isAuth.js";
+import { isAdmin } from "../middlewares/isAdmin.js";
 
+// Obtener todos los productos  - ❌ no requiere autenticación (token)
 const router = express.Router();
-// Obtener todos los productos
 router.get("/products", getProducts);
-// Obtener un producto específico por ID
+// Obtener un producto específico por ID - ❌ no requiere autenticación (token)
 router.get("/products/:id", getProductById);
 
-// Crear un nuevo producto
-router.post("/products", createProduct);
+// Crear un nuevo producto - ✅ requiere autenticación (token) y rol de admin
+router.post("/products", isAuth, isAdmin, createProduct);
 
-// Borrar un producto por ID
-router.delete("/products/:id", deleteProduct);
+// Borrar un producto por ID - ✅ requiere autenticación (token) y rol de admin
+router.delete("/products/:id", isAuth, isAdmin, deleteProduct);
 
-// Actualizar un producto por ID
-router.put("/products/:idUpdate", updateProduct);
+// Actualizar un producto por ID - ✅ requiere autenticación (token) y rol de admin
+router.put("/products/:idUpdate", isAuth, isAdmin, updateProduct);
 
 export default router;
