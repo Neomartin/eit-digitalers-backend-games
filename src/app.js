@@ -5,7 +5,7 @@ import routes from "./routes/index.js";
 // Middleware para parsear el body de las peticiones como JSON
 app.use( express.json() )
 
-app.use("/api", routes);
+app.use("/api-CONFLICTO", routes);
 
 
 
