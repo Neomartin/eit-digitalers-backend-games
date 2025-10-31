@@ -10,6 +10,9 @@ export function isAuth(req, res, next) {
   }
 
   jwt.verify(token, SECRET, (err, decodedToken) => {
+
+    console.log(err)
+
     if (err) {
       return res.status(401).json({ message: "Invalid token" });
     }

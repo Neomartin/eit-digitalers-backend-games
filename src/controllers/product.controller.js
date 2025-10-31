@@ -4,9 +4,13 @@ async function createProduct(req, res) {
   console.log("Body de la petición", req.body);
 
   try {
+
     // Algo en el try que pueda fallar
     // Creamos una nueva instancia del modelo Product con los datos del body (cuerpo de la petición)
+
     const newProduct = new Product(req.body);
+
+    newProduct.image = req.file?.filename
 
     console.log(newProduct);
 
@@ -23,11 +27,67 @@ async function createProduct(req, res) {
 // TODO: Paginación, filtros, ordenación...
 async function getProducts(req, res) {
   try {
-    const products = await Product.find(); // Devuelve una promesa
 
-    console.log(products);
+    const findOptions = {};
 
-    res.status(200).send(products);
+    
+
+    // const page = req.query.page || 1; // Página actual, por defecto 1
+    // const limit = req.query.limit || 5; // Ítems por página, por defecto 5
+
+    const { page = 1, limit = 5, minPrice, maxPrice, category } = req.query;
+
+    if(minPrice || maxPrice) {
+      findOptions.price = {};
+      if (minPrice) {
+        findOptions.price.$gte = Number(minPrice);
+      }
+
+      if (maxPrice) {
+        findOptions.price.$lte = Number(maxPrice);
+      }
+    }
+
+    
+
+    
+    if(category) {
+      findOptions.category = { $regex: new RegExp(category, "i") };
+    }
+    
+    console.log("findOptions:", findOptions);
+
+
+    const products = await Product.find(findOptions)
+      // $or: [
+      //   {
+      //     category: { $regex: "adventure", $options: "i" } // Filtrar por categoría que contenga "action", sin importar mayúsculas/minúsculas
+      //   },
+      //   {
+      //     $and: [{ price: { $gte: 500 } }, { price: { $lte: 1000 } }],
+      //   },
+      // ],
+    // })
+      .select("-__v") // Excluir el campo __v
+      .limit(limit) // Limitar a 5 resultados
+      .skip((page - 1) * limit)
+      .sort({ name: 1 }) // Ordenar por precio ascendente
+      .collation({ locale: "es" }); // Ordenar con reglas de idioma español
+                                  // Omitir los primeros 10 resultados
+
+    const totalProducts = await Product.countDocuments({
+      // category: { $regex: "ACTION", $options: "i" },
+    });
+
+
+    res.status(200).send({
+      products,
+      totalProducts,
+      totalPages: Math.ceil(totalProducts / limit),
+    });
+
+
+
   } catch (error) {
     console.log(error);
 
